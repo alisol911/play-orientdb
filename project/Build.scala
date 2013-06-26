@@ -8,14 +8,13 @@ object ApplicationBuild extends Build {
   val appVersion      = "1.0-SNAPSHOT"
 
   val appDependencies = Seq(
-    // Add your project dependencies here,
-    jdbc,
-    anorm
+    "com.orientechnologies" % "orient-commons" % "1.4.1",
+    "com.orientechnologies" % "orientdb-core" % "1.4.1",
+    "com.orientechnologies" % "orientdb-object" % "1.4.1"    
   )
-
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    // Add your own project settings here      
+    resolvers += "Orient Technologies Maven2 Repository" at "http://www.orientechnologies.com/listing/m2"
   )
-
+  
 }
