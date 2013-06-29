@@ -9,6 +9,8 @@ import org.junit.runner.RunWith
 import scala.util.Random
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsObject
+import org.apache.http.client.utils.URIUtils
+import java.net.URLEncoder
 
 /**
  * Add your spec here.
@@ -32,13 +34,13 @@ class CRUD extends Specification {
         FakeHeaders( Seq( "Content-type" -> Seq( "application/json" ) ) ), jsonForInsert ) ).get
       status( createResult ) must equalTo( OK )
       val id = ( Json.parse( contentAsString( createResult ) ) \ "oid" ).as[ String ]
-      println(id)
 
-//      val findForInsertResult = route( FakeRequest( GET, "/service/entity/note/" + id ) ).get
-//      status( findForInsertResult ) must equalTo( OK )
-//      val jsonFindForInsertResult = Json.parse( contentAsString( findForInsertResult ) )
-//      ( jsonFindForInsertResult \ "name" ).as[ String ] must equalTo( nameForInsert )
-
+      val findForInsertResult = route( FakeRequest( GET, "/service/entity/note/" + URLEncoder.encode(id) ) ).get
+      status( findForInsertResult ) must equalTo( OK )
+      val jsonFindForInsertResult = Json.parse( contentAsString( findForInsertResult ) )
+      println(contentAsString( findForInsertResult ))
+      ( jsonFindForInsertResult \ "name" ).as[ String ] must equalTo( nameForInsert )
+      println(jsonFindForInsertResult)
 /*      
       val findAllForInsertResult = route( FakeRequest( GET,
         "/service/entity/note?criteria=%7B%22name%22%3A%22" + nameForInsert + "%22%7D" ) ).get
