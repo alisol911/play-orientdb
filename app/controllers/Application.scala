@@ -16,6 +16,8 @@ import com.orientechnologies.orient.core.tx.OTransaction.TXTYPE
 import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.metadata.schema.OType._
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx
+import com.orientechnologies.orient.core.metadata.schema.OType
+import com.orientechnologies.orient.core.db.record.OTrackedList
 object Application extends Controller {
 
   lazy val uri = current.configuration.getString( "orientdb.uri" ).get
@@ -95,7 +97,15 @@ object Application extends Controller {
   }
 
   def pullFromSet( entity: String, id: String, set: String, value: String ) = Action { implicit request ⇒
-    InternalServerError
+    val doc = findById( id )
+    val list: OTrackedList[_] = doc.field( set )
+    
+    val v = doc.fromJSON((Json.parse( value ) \ "value").toString)
+    list.foreach( i ⇒ println( i.getClass ) )
+    println( v.getClass )
+    println( list.indexOf( v ) )
+    println( list.remove( jsonToDocument( entity, Json.obj( set -> JsArray( Seq( Json.parse( value ) \ "value" ) ) ) ) ) )
+    NoContent
   }
 
   def editSet( entity: String, id: String, set: String ) = Action( parse.json ) { implicit request ⇒
