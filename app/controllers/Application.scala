@@ -40,19 +40,14 @@ object Application extends Controller {
     db_
   }
 
-  def jsonToDocument( doc: ODocument, className: String, json: JsValue ): ODocument = {
-    val result = ( if ( doc == null ) db.newInstance[ODocument]( className ) else doc )
-    for ( f ← json.asInstanceOf[JsObject].fields ) {
-      result.field( f._1, f._2 )
-    }
-    result.setClassName( className )
-    result
+  def jsonToDocument( className: String, json: JsValue ): ODocument = {
+    val result = db.newInstance[ODocument]( className )
+    result.fromJSON( json.toString )
   }
-
 
   def create( entity: String ) = Action( parse.json ) { implicit request ⇒
     db.begin( TXTYPE.NOTX )
-    val doc = jsonToDocument( null, entity, request.body )
+    val doc = jsonToDocument( entity, request.body )
     doc.save
     val id = doc.getIdentity.toString()
     doc.reset
@@ -67,13 +62,16 @@ object Application extends Controller {
   }
 
   def findAll( entity: String, criteria: String ) = Action { implicit request ⇒
-    InternalServerError
+    val list = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( s"select from $entity" + ( if ( criteria != "" ) s" where $criteria" ) ) )
+    val result = list.map( ( d: ODocument ) ⇒ Json.parse( d.toJSON() ) ).toList
+    Ok( JsArray( result ) )
   }
 
   def edit( entity: String, id: String ) = Action( parse.json ) { implicit request ⇒
-    val doc = db.query( new OSQLSynchQuery[ODocument]( s"select from $id" ) )
+    val doc = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( s"select from $id" ) )
     db.begin( TXTYPE.NOTX )
-    jsonToDocument( doc, entity, request.body ).save
+    val newDoc = doc.get( 0 ).merge( jsonToDocument( entity, request.body ), true, true )
+    newDoc.save
     db.commit()
     Ok( "" )
   }

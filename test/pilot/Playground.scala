@@ -30,22 +30,36 @@ import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 class Playground extends Specification {
   "create" in {
 
-    val db = new ODatabaseDocumentTx( "memory:test" );
-    db.create();
+    val db = new ODatabaseDocumentTx( "memory:test" )
+    db.create
 
-    val doc = db.newInstance();
-    doc.reset();
-    doc.setClassName( "MyDocument" );
-    doc.field( "f1", 11 );
-    db.save( doc );
+    val doc1 = db.newInstance
+    doc1.setClassName( "MyDocument" )
+    doc1.field( "f1", 11 )
+    db.save( doc1 )
 
-    val id = doc.getIdentity().toString();
+    val id = doc1.getIdentity.toString()
 
-    val result = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( "select from " + id ) );
-    val d = result.get(0)
-    System.out.println( d.toJSON() );
+    val result1 = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( "select from " + id ) )
+    val doc2 = result1.get( 0 )
 
-    db.close();
+    val doc3 = db.newInstance
+    doc3.field( "f1", 12 )
+    doc3.field( "f2", 21 )
+    val doc4 = doc2.merge( doc3, true, true )
+    doc4.save
+   
+    val result2 = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( "select from " + id ) ).get( 0 )
+
+    val doc5 = db.newInstance
+    doc5.field( "f1", 13 )
+    val doc6 = result2.merge( doc5, true, true )
+    doc6.save
+   
+    val result3 = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( "select from " + id ) ).get( 0 )
+
+    println( result3 )
+    db.close
   }
 
 }

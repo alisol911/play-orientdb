@@ -37,20 +37,21 @@ class CRUD extends Specification {
       val createResult = route( FakeRequest( POST, "/service/entity/note",
         FakeHeaders( Seq( "Content-type" -> Seq( "application/json" ) ) ), jsonForInsert ) ).get
       status( createResult ) must equalTo( OK )
-      val id = ( Json.parse( contentAsString( createResult ) ) \ "oid" ).as[String]
+      val id = URLEncoder.encode( ( Json.parse( contentAsString( createResult ) ) \ "oid" ).as[String] )
 
-      val findForInsertResult = route( FakeRequest( GET, "/service/entity/note/" + URLEncoder.encode( id ) ) ).get
+      val findForInsertResult = route( FakeRequest( GET, "/service/entity/note/" + id ) ).get
       status( findForInsertResult ) must equalTo( OK )
       val jsonFindForInsertResult = Json.parse( contentAsString( findForInsertResult ) )
       contentType( findForInsertResult ).get must equalTo( "application/json" )
       ( jsonFindForInsertResult \ "name" ).as[String] must equalTo( nameForInsert )
-      /*      
-      val findAllForInsertResult = route( FakeRequest( GET,
-        "/service/entity/note?criteria=%7B%22name%22%3A%22" + nameForInsert + "%22%7D" ) ).get
-      status( findAllForInsertResult ) must equalTo( OK )
-      val jsonFindAllForInsertResult = Json.parse( contentAsString( findAllForInsertResult ) ).as[ JsArray ]
-      ( jsonFindAllForInsertResult( 0 ) \ "name" ).as[ String ] must equalTo( nameForInsert )
 
+      val findAllForInsertResult = route( FakeRequest( GET,
+        "/service/entity/note?criteria=name%3D%22" + nameForInsert + "%22" ) ).get
+      status( findAllForInsertResult ) must equalTo( OK )
+      contentType( findForInsertResult ).get must equalTo( "application/json" )
+      val jsonFindAllForInsertResult = Json.parse( contentAsString( findAllForInsertResult ) ).as[JsArray]
+      ( jsonFindAllForInsertResult( 0 ) \ "name" ).as[String] must equalTo( nameForInsert )
+     
       val updateResult1 = route( FakeRequest( PUT, "/service/entity/note/" + id,
         FakeHeaders( Seq( "Content-type" -> Seq( "application/json" ) ) ), jsonForUpdate1 ) ).get
       status( updateResult1 ) must equalTo( OK )
@@ -58,8 +59,9 @@ class CRUD extends Specification {
       val findForUpdateResult1 = route( FakeRequest( GET, "/service/entity/note/" + id ) ).get
       status( findForUpdateResult1 ) must equalTo( OK )
       val jsonFindForUpdateResult1 = Json.parse( contentAsString( findForUpdateResult1 ) )
-      ( jsonFindForUpdateResult1 \ "name" ).as[ String ] must equalTo( nameForUpdate )
-      ( jsonFindForUpdateResult1 \ "family" ).as[ String ] must equalTo( familyForUpdate1 )
+
+      ( jsonFindForUpdateResult1 \ "name" ).as[String] must equalTo( nameForUpdate )
+      ( jsonFindForUpdateResult1 \ "family" ).as[String] must equalTo( familyForUpdate1 )
 
       val updateResult2 = route( FakeRequest( PUT, "/service/entity/note/" + id,
         FakeHeaders( Seq( "Content-type" -> Seq( "application/json" ) ) ), jsonForUpdate2 ) ).get
@@ -71,6 +73,7 @@ class CRUD extends Specification {
       ( jsonFindForUpdateResult2 \ "name" ).as[ String ] must equalTo( nameForUpdate )
       ( jsonFindForUpdateResult2 \ "family" ).as[ String ] must equalTo( familyForUpdate2 )
 
+      /*      
       val jsonForAddToSet1 = Json.obj( "value" -> "myValue" )
       val addToSetResult1 = route( FakeRequest( POST, "/service/entity/note/" + id + "/oneSet",
         FakeHeaders( Seq( "Content-type" -> Seq( "application/json" ) ) ), jsonForAddToSet1 ) ).get
