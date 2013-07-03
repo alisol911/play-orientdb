@@ -86,7 +86,12 @@ object Application extends Controller {
   }
 
   def addToSet( entity: String, id: String, set: String ) = Action( parse.json ) { implicit request ⇒
-    InternalServerError
+    val doc = findById( id )
+    db.begin( TXTYPE.NOTX )
+    val newDoc = doc.merge( jsonToDocument( entity, Json.obj( set -> JsArray( Seq( request.body \ "value" ) ) ) ), true, true )
+    newDoc.save
+    db.commit()
+    NoContent
   }
 
   def pullFromSet( entity: String, id: String, set: String, value: String ) = Action { implicit request ⇒

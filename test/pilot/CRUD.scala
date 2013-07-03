@@ -73,7 +73,6 @@ class CRUD extends Specification {
       ( jsonFindForUpdateResult2 \ "name" ).as[ String ] must equalTo( nameForUpdate )
       ( jsonFindForUpdateResult2 \ "family" ).as[ String ] must equalTo( familyForUpdate2 )
 
-      /*      
       val jsonForAddToSet1 = Json.obj( "value" -> "myValue" )
       val addToSetResult1 = route( FakeRequest( POST, "/service/entity/note/" + id + "/oneSet",
         FakeHeaders( Seq( "Content-type" -> Seq( "application/json" ) ) ), jsonForAddToSet1 ) ).get
@@ -96,6 +95,7 @@ class CRUD extends Specification {
       val oneSetResult2 = ( jsonfindForAddToSetResult2 \ "oneSet" ).as[ JsArray ]
       ( oneSetResult2( 1 ).as[ JsObject ] \ "val" ).as[ Double ] must equalTo( 1.0 )
 
+      /*      
       val pullFromSetResult1 = route( FakeRequest( DELETE, "/service/entity/note/" + id +
         "/oneSet?value=%7B%22value%22%3A%22myValue%22%7D" ) ).get
       status( pullFromSetResult1 ) must equalTo( NO_CONTENT )
