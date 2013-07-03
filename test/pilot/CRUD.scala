@@ -135,10 +135,10 @@ class CRUD extends Specification {
       status( findForEditSetResult2 ) must equalTo( OK )
       val oneSetResult5 = ( Json.parse( contentAsString( findForEditSetResult2 ) ) \ "oneSet" ).as[ JsArray ]
       ( oneSetResult5( 1 ).as[ JsObject ] \ "val" ).as[ Double ] must equalTo( 2.0 )
+*/
 
       val deleteResult = route( FakeRequest( DELETE, "/service/entity/note/" + id ) ).get
       status( deleteResult ) must equalTo( NO_CONTENT )
-*/
     }
   }
 }	

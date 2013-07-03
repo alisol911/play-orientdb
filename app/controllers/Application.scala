@@ -40,9 +40,14 @@ object Application extends Controller {
     db_
   }
 
-  def jsonToDocument( className: String, json: JsValue ): ODocument = {
+  private def jsonToDocument( className: String, json: JsValue ): ODocument = {
     val result = db.newInstance[ODocument]( className )
     result.fromJSON( json.toString )
+  }
+
+  private def findById( id: String ): ODocument = {
+    val result = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( s"select from $id" ) )
+    result.get( 0 )
   }
 
   def create( entity: String ) = Action( parse.json ) { implicit request ⇒
@@ -57,8 +62,7 @@ object Application extends Controller {
   }
 
   def find( entity: String, id: String ) = Action { implicit request ⇒
-    val doc = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( s"select from $id" ) )
-    Ok( Json.parse( doc.get( 0 ).toJSON() ) )
+    Ok( Json.parse( findById( id ).toJSON() ) )
   }
 
   def findAll( entity: String, criteria: String ) = Action { implicit request ⇒
@@ -68,16 +72,17 @@ object Application extends Controller {
   }
 
   def edit( entity: String, id: String ) = Action( parse.json ) { implicit request ⇒
-    val doc = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( s"select from $id" ) )
+    val doc = findById( id )
     db.begin( TXTYPE.NOTX )
-    val newDoc = doc.get( 0 ).merge( jsonToDocument( entity, request.body ), true, true )
+    val newDoc = doc.merge( jsonToDocument( entity, request.body ), true, true )
     newDoc.save
     db.commit()
     Ok( "" )
   }
 
   def delete( entity: String, id: String ) = Action {
-    InternalServerError
+    findById( id ).delete();
+    NoContent
   }
 
   def addToSet( entity: String, id: String, set: String ) = Action( parse.json ) { implicit request ⇒
