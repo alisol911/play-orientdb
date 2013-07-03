@@ -18,29 +18,34 @@ import com.orientechnologies.orient.`object`.db.ODatabaseObjectPool
 import com.orientechnologies.orient.`object`.db.OObjectDatabaseTx
 import com.orientechnologies.orient.core.tx.OTransaction.TXTYPE;
 import com.orientechnologies.orient.core.record.impl.ODocument;
+import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.db.graph.OGraphDatabase;
+import com.orientechnologies.orient.core.metadata.schema.OClass;
+import com.orientechnologies.orient.core.metadata.schema.OClass.INDEX_TYPE;
+import com.orientechnologies.orient.core.metadata.schema.OType;
+import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 
-@RunWith( classOf[ JUnitRunner ] )
+@RunWith( classOf[JUnitRunner] )
 class Playground extends Specification {
   "create" in {
-  
-    var uri = "local:/tmp/pilotdb"
-    var db = new OObjectDatabaseTx( uri )
-    if ( !db.exists ) {
-      db.create()
-    } else {
-      db.open( "admin", "admin" )
-    }
 
-    db.begin( TXTYPE.NOTX );
-    val doc = new ODocument();
+    val db = new ODatabaseDocumentTx( "memory:test" );
+    db.create();
 
-    doc.field( "id", 1 );
-    doc.field( "name", "A" );
-    doc.setClassName( "Pilot" );
-    doc.save();
+    val doc = db.newInstance();
     doc.reset();
-    db.commit();
-    db.close()
+    doc.setClassName( "MyDocument" );
+    doc.field( "f1", 11 );
+    db.save( doc );
+
+    val id = doc.getIdentity().toString();
+
+    val result = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( "select from " + id ) );
+    val d = result.get(0)
+    System.out.println( d.toJSON() );
+
+    db.close();
   }
 
 }

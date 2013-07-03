@@ -17,11 +17,15 @@ import java.net.URLEncoder
  * You can mock out a whole application including requests, plugins etc.
  * For more information, consult the wiki.
  */
-@RunWith( classOf[ JUnitRunner ] )
+@RunWith( classOf[JUnitRunner] )
 class CRUD extends Specification {
 
+  //  val uri = Map( "orientdb.uri" -> "local:/tmp/testdb" )
+  val uri = Map( "orientdb.uri" -> "memory:testdb" )
+  //  val uri = Map( "orientdb.uri" -> "remote:localhost/testdb" )
+
   "create simple note" in {
-    running( FakeApplication(additionalConfiguration = Map("orientdb.uri" -> "local:/tmp/testdb")  ) ) {
+    running( FakeApplication( additionalConfiguration = uri ) ) {
       val nameForInsert = "name" + Random.nextInt
       val nameForUpdate = "name" + Random.nextInt
       val familyForUpdate1 = "fmily" + Random.nextInt
@@ -33,15 +37,14 @@ class CRUD extends Specification {
       val createResult = route( FakeRequest( POST, "/service/entity/note",
         FakeHeaders( Seq( "Content-type" -> Seq( "application/json" ) ) ), jsonForInsert ) ).get
       status( createResult ) must equalTo( OK )
-      val id = ( Json.parse( contentAsString( createResult ) ) \ "oid" ).as[ String ]
+      val id = ( Json.parse( contentAsString( createResult ) ) \ "oid" ).as[String]
 
-      val findForInsertResult = route( FakeRequest( GET, "/service/entity/note/" + URLEncoder.encode(id) ) ).get
+      val findForInsertResult = route( FakeRequest( GET, "/service/entity/note/" + URLEncoder.encode( id ) ) ).get
       status( findForInsertResult ) must equalTo( OK )
       val jsonFindForInsertResult = Json.parse( contentAsString( findForInsertResult ) )
-      println(contentAsString( findForInsertResult ))
-      ( jsonFindForInsertResult \ "name" ).as[ String ] must equalTo( nameForInsert )
-      println(jsonFindForInsertResult)
-/*      
+      contentType( findForInsertResult ).get must equalTo( "application/json" )
+      ( jsonFindForInsertResult \ "name" ).as[String] must equalTo( nameForInsert )
+      /*      
       val findAllForInsertResult = route( FakeRequest( GET,
         "/service/entity/note?criteria=%7B%22name%22%3A%22" + nameForInsert + "%22%7D" ) ).get
       status( findAllForInsertResult ) must equalTo( OK )

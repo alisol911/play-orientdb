@@ -13,8 +13,9 @@ import com.orientechnologies.orient.core.db.`object`.ODatabaseObject
 import com.orientechnologies.orient.`object`.db.ODatabaseObjectPool
 import com.orientechnologies.orient.`object`.db.OObjectDatabaseTx
 import com.orientechnologies.orient.core.tx.OTransaction.TXTYPE
-import com.orientechnologies.orient.core.record.impl.ODocument;
+import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.metadata.schema.OType._
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx
 object Application extends Controller {
 
   lazy val uri = current.configuration.getString( "orientdb.uri" ).get
@@ -24,28 +25,30 @@ object Application extends Controller {
   }
 
   lazy val db = {
-    val db_ = new OObjectDatabaseTx( uri )
-    db_.open( "admin", "admin" )
+    val db_ = new ODatabaseDocumentTx( uri )
+    def dbIsExists: Boolean = {
+      try {
+        db_.exists
+      } catch {
+        case e: UnsupportedOperationException ⇒ true
+      }
+    }
+    if ( !dbIsExists )
+      db_.create
+    else
+      db_.open( "admin", "admin" )
     db_
   }
 
   def jsonToDocument( doc: ODocument, className: String, json: JsValue ): ODocument = {
-    val result = ( if ( doc == null ) new ODocument else doc )
-    for ( f ← json.asInstanceOf[ JsObject ].fields ) {
+    val result = ( if ( doc == null ) db.newInstance[ODocument]( className ) else doc )
+    for ( f ← json.asInstanceOf[JsObject].fields ) {
       result.field( f._1, f._2 )
     }
     result.setClassName( className )
     result
   }
 
-  def documentToJson( doc: ODocument ): JsArray = {
-    val result = doc.fieldNames().map( field ⇒ {
-      doc.fieldType( field ) match {
-        case STRING ⇒ Json.obj( ( field, doc.field[ String ]( field ) ) )
-      }
-    } )
-    JsArray( result.toList )
-  }
 
   def create( entity: String ) = Action( parse.json ) { implicit request ⇒
     db.begin( TXTYPE.NOTX )
@@ -54,13 +57,13 @@ object Application extends Controller {
     val id = doc.getIdentity.toString()
     doc.reset
     db.commit
-    val json = Json.obj( ( "oid", id ) ) ++ request.body.as[ JsObject ]
+    val json = Json.obj( ( "oid", id ) ) ++ request.body.as[JsObject]
     Ok( json )
   }
 
   def find( entity: String, id: String ) = Action { implicit request ⇒
-    val doc = db.query[ java.util.List[ ODocument ] ]( new OSQLSynchQuery[ ODocument ]( s"select from $id" ) )
-    Ok( documentToJson( doc.get( 0 ) ) )
+    val doc = db.query[java.util.List[ODocument]]( new OSQLSynchQuery[ODocument]( s"select from $id" ) )
+    Ok( Json.parse( doc.get( 0 ).toJSON() ) )
   }
 
   def findAll( entity: String, criteria: String ) = Action { implicit request ⇒
@@ -68,7 +71,7 @@ object Application extends Controller {
   }
 
   def edit( entity: String, id: String ) = Action( parse.json ) { implicit request ⇒
-    val doc = db.query( new OSQLSynchQuery[ ODocument ]( s"select from $id" ) )
+    val doc = db.query( new OSQLSynchQuery[ODocument]( s"select from $id" ) )
     db.begin( TXTYPE.NOTX )
     jsonToDocument( doc, entity, request.body ).save
     db.commit()
