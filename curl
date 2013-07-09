@@ -1,0 +1,12 @@
+curl -X POST -H'Content-Type: application/json' -d'{"name":"Hello"}' http://localhost:9000/service/entity/note
+
+curl -X POST -H'Content-Type: application/json' -d'{"name":"Hello"}' http://localhost:9000/service/entity/test
+curl -X GET http://localhost:9000/service/entity/test/51a8a1125a26f73a00180aab
+curl -X PUT -H'Content-Type: application/json' -d'{"name":"Hello 2"}' http://localhost:9000/service/entity/test/51a8a1125a26f73a00180aab
+curl -X DELETE http://localhost:9000/service/entity/test/51a8a1125a26f73a00180aab
+curl -X GET http://localhost:9000/service/entity/test
+
+
+ab -n10 -c10 http://localhost:9000/service/entity/note
+
+ab -n10 -k -c10 -p data -T application/json  http://localhost:9000/service/entity/note
