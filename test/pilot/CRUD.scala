@@ -99,7 +99,7 @@ class CRUD extends Specification {
         "/oneSet?value=%7B%22value%22%3A%22myValue%22%7D" ) ).get
       status( pullFromSetResult1 ) must equalTo( NO_CONTENT )
       val pullFromSetResult2 = route( FakeRequest( DELETE, "/service/entity/note/" + id +
-        "/oneSet?value=%7B%22value%22%3A%7B%22val%22%3A1.0%7D%7D" ) ).get
+        "/oneSet?value=%7B%22value%22%3A%7B%22val%22%3A1%7D%7D" ) ).get
       status( pullFromSetResult2 ) must equalTo( NO_CONTENT )
 
       val findForPushFromSetResult1 = route( FakeRequest( GET, "/service/entity/note/" + id ) ).get
@@ -107,7 +107,6 @@ class CRUD extends Specification {
       val oneSetResult3 = ( Json.parse( contentAsString( findForPushFromSetResult1 ) ) \ "oneSet" ).as[ JsArray ]
       oneSetResult3.toString must equalTo( "[]" )
 
-      /*      
       val addToSetResult3 = route( FakeRequest( POST, "/service/entity/note/" + id + "/oneSet",
         FakeHeaders( Seq( "Content-type" -> Seq( "application/json" ) ) ), jsonForAddToSet1 ) ).get
       status( addToSetResult3 ) must equalTo( NO_CONTENT )
@@ -135,7 +134,6 @@ class CRUD extends Specification {
       status( findForEditSetResult2 ) must equalTo( OK )
       val oneSetResult5 = ( Json.parse( contentAsString( findForEditSetResult2 ) ) \ "oneSet" ).as[ JsArray ]
       ( oneSetResult5( 1 ).as[ JsObject ] \ "val" ).as[ Double ] must equalTo( 2.0 )
-*/
 
       val deleteResult = route( FakeRequest( DELETE, "/service/entity/note/" + id ) ).get
       status( deleteResult ) must equalTo( NO_CONTENT )

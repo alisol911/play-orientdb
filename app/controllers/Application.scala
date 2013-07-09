@@ -99,16 +99,24 @@ object Application extends Controller {
   def pullFromSet( entity: String, id: String, set: String, value: String ) = Action { implicit request ⇒
     val doc = findById( id )
     val list: OTrackedList[_] = doc.field( set )
-    
-    val v = doc.fromJSON((Json.parse( value ) \ "value").toString)
-    list.foreach( i ⇒ println( i.getClass ) )
-    println( v.getClass )
-    println( list.indexOf( v ) )
-    println( list.remove( jsonToDocument( entity, Json.obj( set -> JsArray( Seq( Json.parse( value ) \ "value" ) ) ) ) ) )
+    val itemToDelete = ( new ODocument ).fromJSON[ODocument]( ( Json.parse( value ) ).toString )
+    db.begin( TXTYPE.NOTX )
+    list.remove( list.indexOf( itemToDelete.field( "value" ) ) )
+    doc.field( set, list )
+    doc.save
+    db.commit()
     NoContent
   }
 
   def editSet( entity: String, id: String, set: String ) = Action( parse.json ) { implicit request ⇒
-    InternalServerError
+    val doc = findById( id )
+    val list: OTrackedList[_] = doc.field( set )
+    val itemToEdit = ( new ODocument ).fromJSON[ODocument]( request.body.toString )
+    db.begin( TXTYPE.NOTX )
+    list.set( list.indexOf( itemToEdit.field( "oldValue" ) ), itemToEdit.field( "value" ) )
+    doc.field( set, list )
+    doc.save
+    db.commit()
+    NoContent
   }
 }
