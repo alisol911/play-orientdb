@@ -6,7 +6,7 @@
 GET      /                                  controllers.Application.index
 
 POST     /service/entity/:entity            controllers.Application.create(entity: String)
-GET      /service/entity/:entity            controllers.Application.findAll(entity: String, criteria: String ?= "{}")
+GET      /service/entity/:entity            controllers.Application.findAll(entity: String, criteria: String ?= "")
 GET      /service/entity/:entity/:id        controllers.Application.find(entity: String, id: String)
 PUT      /service/entity/:entity/:id        controllers.Application.edit(entity: String, id: String)
 DELETE   /service/entity/:entity/:id        controllers.Application.delete(entity: String, id: String)
